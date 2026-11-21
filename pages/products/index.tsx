@@ -10,14 +10,33 @@ interface Products {
 }
 
 export async function getStaticProps() {
-  const res = await fetch("https://fakestoreapi.com/products");
-  const products: Products[] = await res.json();
+  try {
+    const res = await fetch("https://fakestoreapi.com/products", {
+      headers: {
+        Accept: "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    });
 
-  return {
-    props: {
-      products,
-    },
-  };
+    const contentType = res.headers.get("content-type") || "";
+    if (!res.ok || !contentType.includes("application/json")) {
+      throw new Error(`Invalid response: ${res.status}`);
+    }
+
+    const products: Products[] = await res.json();
+
+    return {
+      props: { products },
+      revalidate: 60, // ISR: retries/refreshes in the background every 60s
+    };
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    return {
+      props: { products: [] },
+      revalidate: 10, // Retry quickly if the build-time fetch was blocked
+    };
+  }
 }
 
 export default function Products({ products }: { products: Products[] }) {

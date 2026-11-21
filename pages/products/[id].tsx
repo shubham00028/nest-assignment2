@@ -14,7 +14,12 @@ interface Product {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { id } = context.params as { id: string }
-    const res = await fetch(`https://fakestoreapi.com/products/${id}`)
+    const res = await fetch(`https://fakestoreapi.com/products/${id}`, {
+        headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+    })
 
     if (!res.ok) {
         return { notFound: true}
